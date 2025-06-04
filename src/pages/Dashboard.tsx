@@ -1,22 +1,30 @@
 import { useState, useEffect } from "react";
-import { fetchCurrentWeather, fetchCoordsFromCity } from "../api/weather";
+import { fetchCurrentWeather, fetchCoordsFromCity, fetchFiveDayForecast } from "../api/weather";
 import type { WeatherData } from "../api/weather";
+import type { ForecastEntry } from "../api/weather";
+import TemperatureChart from "../components/TemperatureChart";
 import SearchBar from "../components/SearchBar";
 
 function Dashboard() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [forecast, setForecast] = useState<ForecastEntry[]>([]);
+
   const [city, setCity] = useState("Nantes");
 
   useEffect(() => {
-    async function loadWeather() {
-      try {
-        const { lat, lon } = await fetchCoordsFromCity(city);
-        const data = await fetchCurrentWeather(lat, lon);
-        setWeather(data);
-      } catch (err) {
-        console.error("Erreur lors du chargement météo :", err);
-      }
-    }
+async function loadWeather() {
+  try {
+    const { lat, lon } = await fetchCoordsFromCity(city);
+    const data = await fetchCurrentWeather(lat, lon);
+    const daily = await fetchFiveDayForecast(lat, lon);
+
+    setWeather(data);
+    setForecast(daily);
+  } catch (err) {
+    console.error("Erreur lors du chargement météo :", err);
+  }
+}
+
 
     loadWeather();
   }, [city]);
@@ -29,7 +37,8 @@ function Dashboard() {
     <SearchBar onSearch={setCity} />
   </div>
 
-  {weather ? (
+{weather ? (
+  <>
     <div className="bg-blue-100 p-6 rounded-xl shadow">
       <h2 className="text-xl font-semibold">{weather.name}</h2>
       <p>🌡 Température : {weather.main.temp} °C</p>
@@ -41,9 +50,13 @@ function Dashboard() {
         alt="icone météo"
       />
     </div>
-  ) : (
-    <p className="text-center mt-4">Chargement des données météo...</p>
-  )}
+
+    {forecast.length > 0 && <TemperatureChart data={forecast} />}
+  </>
+) : (
+  <p className="text-center mt-4">Chargement des données météo...</p>
+)}
+
 </div>
 
   );

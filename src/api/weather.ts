@@ -41,3 +41,30 @@ export const fetchCoordsFromCity = async (city: string) => {
   const { lat, lon } = response.data[0];
   return { lat, lon };
 };
+
+
+
+export interface ForecastEntry {
+  dt_txt: string;
+  main: {
+    temp_min: number;
+    temp_max: number;
+  };
+}
+
+
+export const fetchFiveDayForecast = async (
+  lat: number,
+  lon: number
+): Promise<ForecastEntry[]> => {
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+
+  const response = await axios.get<{ list: ForecastEntry[] }>(url);
+
+  const filtered = response.data.list.filter((entry) =>
+    entry.dt_txt.includes("12:00:00")
+  );
+
+  return filtered.slice(0, 5);
+};
+
