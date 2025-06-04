@@ -27,3 +27,17 @@ export const fetchCurrentWeather = async (
   const response = await axios.get<WeatherData>(url);
   return response.data;
 };
+
+export const fetchCoordsFromCity = async (city: string) => {
+  const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(
+    city
+  )}&limit=1&appid=${API_KEY}`;
+
+  const response = await axios.get(url);
+  if (response.data.length === 0) {
+    throw new Error("Ville non trouvée");
+  }
+
+  const { lat, lon } = response.data[0];
+  return { lat, lon };
+};
